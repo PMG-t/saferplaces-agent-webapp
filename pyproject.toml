@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "saferplaces-agent-webapp"
+version = "0.0.0"
+description = "Saferpalces Agent WebApp Interface"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name="Tommaso Redaelli", email="tommaso.redaelli@gecosistema.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "Flask"
+]
+
+[project.urls]
+Homepage = "https://github.com/PMG-t/saferplaces-agent-webapp"
