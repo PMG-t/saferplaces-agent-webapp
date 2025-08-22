@@ -2,22 +2,155 @@
 <html lang="it">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Collegamento a Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SaferPlacesAgent</title>
+
+    <!-- maplibre -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+    <!-- deck.gl core (UMD) -->
+    <script src="https://unpkg.com/deck.gl@8.9.36/dist.min.js"></script>
+    <script src="https://unpkg.com/@deck.gl/mapbox@8.9.36/dist.min.js"></script>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: #05080f;
+        }
+
+        #map {
+            position: fixed;
+            inset: 0
+        }
+
+        .panel {
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            padding: 10px 14px;
+            background: rgba(10, 16, 28, .85);
+            border: 1px solid #1c2a44;
+            border-radius: 14px;
+            color: #eaf2ff;
+            font-family: sans-serif;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .35);
+        }
+
+        select,
+        input {
+            margin-top: 4px;
+            background: #0d1627;
+            color: #fff;
+            border: 1px solid #24385c;
+            border-radius: 10px;
+            padding: 6px 10px
+        }
+
+        label {
+            font-size: 12px;
+            opacity: .8;
+            display: block;
+            margin-top: 6px
+        }
+    </style>
 </head>
 
 <body>
 
-    <div class="content">
-        <h1 class="mb-4">{% block heading %}Home{% endblock %}</h1>
-        {% block content %}
-        <p>Contenuto della pagina...</p>
-        {% endblock %}
+    <div id="map"></div>
+    <div class="panel">
+        <label for="styleSel">Basemap</label>
+        <select id="styleSel">
+            <option value="open">OSM (Open)</option>
+            <option value="positron">OSM (Carto Positron)</option>
+            <option value="esri">Esri Satellite</option>
+            <option value="mapbox">Mapbox Streets</option>
+        </select>
+        <label for="mbToken">Mapbox Token</label>
+        <input id="mbToken" placeholder="pk.***" size="20" />
     </div>
 
-    
+
+    <script>
+        const DEFAULT_VIEW = { center: [12.4964, 41.9028], zoom: 5.2, pitch: 45, bearing: -10 };
+        const MAPBOX_TOKEN = 'pk.your_token_here'; // supponi di averlo
+
+
+        const STYLES = {
+            open: 'https://demotiles.maplibre.org/style.json',
+            positron: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+            esri: esriSatelliteStyle(),
+            mapbox: () => `https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=${getToken()}`
+        };
+
+
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: STYLES.open,
+            center: DEFAULT_VIEW.center,
+            zoom: DEFAULT_VIEW.zoom,
+            pitch: DEFAULT_VIEW.pitch,
+            bearing: DEFAULT_VIEW.bearing,
+            antialias: true
+        });
+
+
+        map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
+
+
+        const sel = document.getElementById('styleSel');
+        const tokenInput = document.getElementById('mbToken');
+        sel.onchange = () => applyStyle(sel.value);
+
+
+        function applyStyle(name) {
+            if (name === 'mapbox') map.setStyle(STYLES.mapbox());
+            else if (name === 'esri') map.setStyle(STYLES.esri);
+            else map.setStyle(STYLES[name] || STYLES.open);
+        }
+        function getToken() {
+            const v = tokenInput.value.trim();
+            return v || MAPBOX_TOKEN;
+        }
+
+
+        function esriSatelliteStyle() {
+            return {
+                version: 8,
+                sources: {
+                    esri: {
+                        type: 'raster', tiles: [
+                            'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                        ], tileSize: 256, attribution: '© Esri, Maxar'
+                    }
+                },
+                layers: [{ id: 'esri', type: 'raster', source: 'esri' }]
+            };
+        }
+
+
+        // ——— deck.gl minimo ———
+        const { MapboxLayer, ScatterplotLayer } = deck;
+        map.on('load', () => {
+            const scatter = new MapboxLayer({
+                id: 'deck-scatter',
+                type: ScatterplotLayer,
+                data: [{ position: [12.4964, 45.9028] }],
+                getPosition: d => d.position,
+                getRadius: 40000,
+                getFillColor: [200, 80, 80]
+            });
+            map.addLayer(scatter);
+        });
+    </script>
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
