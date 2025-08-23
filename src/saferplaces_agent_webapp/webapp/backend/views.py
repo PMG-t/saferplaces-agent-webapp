@@ -67,13 +67,14 @@ class AgentPrompt(SubView):
     def prepare_data(self):
         super().prepare_data()
         agent_messages = []
+        print("Thread ID:", self.thread_id, '-'*40)
         for event in graph.stream({"messages": [{"role": "user", "content": self.prompt}]}, config=self.config):
             for value in event.values():
-                # print(value)
-                # print()
-                # print("Assistant:", value["messages"][-1].content)
-                # print('1n--------------------------')
-                agent_messages.append(value["messages"][-1].content)
+                print(value)
+                print()
+                print('\n', '-'*40)
+                agent_messages.append(value["messages"][-1].to_json())
+        print('\n', '=' * 40, '\n')
         self.set_response_data(agent_messages)
         print(self.response_data)
 

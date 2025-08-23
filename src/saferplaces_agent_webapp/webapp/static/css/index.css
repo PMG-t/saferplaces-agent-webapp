@@ -1,0 +1,17 @@
+html,
+body,
+#map {
+    height: 100%;
+    margin: 0;
+}
+
+.legend {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: white;
+    padding: 8px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    font: 12px/1.2 system-ui, sans-serif;
+}
