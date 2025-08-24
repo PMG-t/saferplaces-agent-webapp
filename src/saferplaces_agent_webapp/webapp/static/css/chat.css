@@ -55,6 +55,11 @@
     word-wrap: break-word
 }
 
+.msg p {
+    margin: 0 0 0 0;
+    word-wrap: break-word
+}
+
 .msg.user {
     align-self: flex-end;
     background: var(--bubble2);

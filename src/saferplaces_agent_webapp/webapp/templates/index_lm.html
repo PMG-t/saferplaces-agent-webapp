@@ -16,6 +16,157 @@
 
   <link rel="stylesheet" href="static/css/index.css" />
   <link rel="stylesheet" href="static/css/chat.css" />
+
+  <!-- Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Material Symbols Outlined -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+
+  <style>
+    /* Layers Panel */
+    .panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 14px 12px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      color: #1f2937;
+      width: 240px;
+      z-index: 9999;
+    }
+
+    .panel h4 {
+      margin: 0 0 10px 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    /* #layerList {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 12px 0;
+    }
+
+    #layerList li {
+      padding: 8px 10px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.75);
+      cursor: grab;
+      transition: .15s;
+    }
+
+    #layerList li:hover {
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
+    } */
+
+    #layerList {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 12px 0;
+    }
+
+    .layer-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.75);
+      cursor: grab;
+      position: relative;
+    }
+
+    .layer-item:hover {
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
+    }
+
+    .layer-item .icon {
+      font-size: 14px;
+    }
+
+    .layer-item .name {
+      flex: 1;
+    }
+
+    /* Pulsanti */
+    .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 4px;
+      border-radius: 6px;
+      transition: .15s;
+    }
+
+    .btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Dropdown */
+    .dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 8px;
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, .1);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+      min-width: 120px;
+      z-index: 100;
+    }
+
+    .dropdown.hidden {
+      display: none;
+    }
+
+    .dropdown-item {
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .dropdown-item:hover {
+      background: #f3f4f6;
+    }
+
+    #dropzone {
+      border: 2px dashed rgba(0, 0, 0, .2);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      color: #374151;
+      font-size: 13px;
+      transition: .2s;
+    }
+
+    #dropzone.dragover {
+      border-color: #0284c7;
+      color: #0284c7;
+      background: rgba(255, 255, 255, 0.7);
+    }
+  </style>
 </head>
 
 <body>
@@ -35,256 +186,84 @@
     </div>
   </section>
 
-  <script>
-
-    function s3uri_to_https(s3_uri) {
-      return s3_uri.replace('s3://', 'https://s3.us-east-1.amazonaws.com/')
-    }
-    // DOC: Base map
-    const map = L.map("map", { preferCanvas: true }).setView([41.9, 12.5], 6); // Italia come default
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "&copy; OpenStreetMap contributors"
-    }).addTo(map);
-
-    // TEST: Url S3 (DEMO)
-    const RASTER_URL = "https://s3.us-east-1.amazonaws.com/saferplaces.co/SaferPlaces-Agent/dev/various/output_cog.tif";   // COG GeoTIFF
-    const VECTOR_URL = "https://s3.us-east-1.amazonaws.com/saferplaces.co/Directed/process_out/SaferBuildingsService/WD_custom_rim2d_sqamrly__flooded_buildings.geojson"; // GeoJSON
-
-    // === 3) Aggiungi vettoriale GeoJSON da S3 ===
-    // fetch(VECTOR_URL)
-    //   .then(r => r.json())
-    //   .then(data => {
-    //     const vg = L.vectorGrid.slicer(data, {
-    //       rendererFactory: L.canvas.tile,
-    //       maxZoom: 19,
-    //       interactive: true,
-    //       // parametri di semplificazione (più alto = più veloce, meno preciso)
-    //       tolerance: 3,       // default 3; alza a 5–8 per geometrie complesse
-    //       extent: 4096,       // risoluzione interna
-    //       indexMaxZoom: 5,    // livello max per indicizzazione
-    //       indexMaxPoints: 100000 // batch di indicizzazione
-    //       ,
-    //       vectorTileLayerStyles: {
-    //         sliced: f => {
-    //           // stile unico per tutte le feature (nome layer = 'sliced')
-    //           if (f.type === 1) return { radius: 3, color: "#0061ff", weight: 1, fillOpacity: 0.7 };
-    //           return { color: "#0061ff", weight: 1, fillOpacity: 0.2 };
-    //         }
-    //       }
-    //     })
-    //       .on('click', e => {
-    //         // popup minimale con prime proprietà
-    //         const props = e.layer.properties || {};
-    //         const rows = Object.entries(props).slice(0, 10)
-    //           .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
-    //         L.popup().setLatLng(e.latlng).setContent(`<table>${rows}</table>`).openOn(map);
-    //       })
-    //       .addTo(map);
-    //   });
-
-    // === 4) Aggiungi raster COG GeoTIFF da S3 ===
-    // Nota: assicura CORS sul bucket e che il TIFF sia un COG con overview.
-    // (async () => {
-    //   try {
-    //     const response = await fetch(RASTER_URL, { headers: { "Range": "bytes=0-" } });
-    //     if (!response.ok) throw new Error("Impossibile caricare GeoTIFF: " + response.status);
-    //     const arrayBuffer = await response.arrayBuffer();
-
-    //     const georaster = await parseGeoraster(arrayBuffer);
-    //     // georaster.nodata, georaster.mins/maxs, georaster.pixelHeight etc. disponibili qui
-
-    //     // Funzione colori semplice (da blu a rosso) usando min/max stimati
-    //     const min = (georaster.mins && georaster.mins[0] != null) ? georaster.mins[0] : 0;
-    //     const max = (georaster.maxs && georaster.maxs[0] != null) ? georaster.maxs[0] : 1;
-    //     const nodata = Array.isArray(georaster.noDataValue) ? georaster.noDataValue[0] : georaster.noDataValue;
-
-    //     function lerp(a, b, t) { return a + (b - a) * t; }
-    //     function valueToColor(v) {
-    //       if (v == null || Number.isNaN(v)) return null;
-    //       if (nodata != null && v === nodata) return null;
-    //       const t = Math.max(0, Math.min(1, (v - min) / (max - min || 1)));
-    //       // gradiente blu(0,0,255) -> rosso(255,0,0)
-    //       const r = Math.round(lerp(0, 255, t));
-    //       const g = 0;
-    //       const b = Math.round(lerp(255, 0, t));
-    //       return `rgba(${r},${g},${b},0.7)`;
-    //     }
-
-    //     const rasterLayer = new GeoRasterLayer({
-    //       georaster,
-    //       opacity: 0.7,
-    //       pixelValuesToColorFn: values => valueToColor(values[0]),
-    //       resolution: 256 // più alto = più veloce (meno dettagli), regola se serve
-    //     });
-
-    //     rasterLayer.addTo(map);
-
-    //     // Prova a fare fit sui bounds del raster (se il vettoriale non ha già fatto fit)
-    //     try { map.fitBounds(rasterLayer.getBounds(), { padding: [20, 20] }); } catch (e) { }
-
-    //     // Piccola legenda dinamica
-    //     const legend = document.getElementById("legend");
-    //     legend.style.display = "block";
-    //     legend.innerHTML = `
-    //       <div style="margin-bottom:6px;font-weight:600">Raster (valori)</div>
-    //       <div style="display:flex;align-items:center;gap:8px">
-    //         <span>${min.toFixed(2)}</span>
-    //         <div style="height:10px;width:160px;background:linear-gradient(to right, #0000ff, #ff0000);border-radius:6px;"></div>
-    //         <span>${max.toFixed(2)}</span>
-    //       </div>
-    //     `;
-    //   } catch (err) {
-    //     console.error(err);
-    //     alert("Errore nel caricamento del raster COG. Vedi console per dettagli.");
-    //   }
-    // })();
-
-
-    function addVectorLayer(src) {
-      fetch(src)
-        .then(r => r.json())
-        .then(data => {
-          const vg = L.vectorGrid.slicer(data, {
-            rendererFactory: L.canvas.tile,
-            maxZoom: 19,
-            interactive: true,
-            // parametri di semplificazione (più alto = più veloce, meno preciso)
-            tolerance: 3,       // default 3; alza a 5–8 per geometrie complesse
-            extent: 4096,       // risoluzione interna
-            indexMaxZoom: 5,    // livello max per indicizzazione
-            indexMaxPoints: 100000 // batch di indicizzazione
-            ,
-            vectorTileLayerStyles: {
-              sliced: f => {
-                // stile unico per tutte le feature (nome layer = 'sliced')
-                if (f.type === 1) return { radius: 3, color: "#0061ff", weight: 1, fillOpacity: 0.7 };
-                return { color: "#0061ff", weight: 1, fillOpacity: 0.2 };
-              }
-            }
-          })
-            .on('click', e => {
-              // popup minimale con prime proprietà
-              const props = e.layer.properties || {};
-              const rows = Object.entries(props).slice(0, 10)
-                .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
-              L.popup().setLatLng(e.latlng).setContent(`<table>${rows}</table>`).openOn(map);
-            })
-            .addTo(map);
-        });
-    }
-
-    async function addRasterLayer(src) {
-      const response = await fetch(RASTER_URL, { headers: { "Range": "bytes=0-" } });
-      if (!response.ok) throw new Error("Impossibile caricare GeoTIFF: " + response.status);
-      const arrayBuffer = await response.arrayBuffer();
-
-      const georaster = await parseGeoraster(arrayBuffer);
-      // georaster.nodata, georaster.mins/maxs, georaster.pixelHeight etc. disponibili qui
-
-      // Funzione colori semplice (da blu a rosso) usando min/max stimati
-      const min = (georaster.mins && georaster.mins[0] != null) ? georaster.mins[0] : 0;
-      const max = (georaster.maxs && georaster.maxs[0] != null) ? georaster.maxs[0] : 1;
-      const nodata = Array.isArray(georaster.noDataValue) ? georaster.noDataValue[0] : georaster.noDataValue;
-
-      function lerp(a, b, t) { return a + (b - a) * t; }
-      function valueToColor(v) {
-        if (v == null || Number.isNaN(v)) return null;
-        if (nodata != null && v === nodata) return null;
-        const t = Math.max(0, Math.min(1, (v - min) / (max - min || 1)));
-        // gradiente blu(0,0,255) -> rosso(255,0,0)
-        const r = Math.round(lerp(0, 255, t));
-        const g = 0;
-        const b = Math.round(lerp(255, 0, t));
-        return `rgba(${r},${g},${b},0.7)`;
-      }
-
-      const rasterLayer = new GeoRasterLayer({
-        georaster,
-        opacity: 0.7,
-        pixelValuesToColorFn: values => valueToColor(values[0]),
-        resolution: 256 // più alto = più veloce (meno dettagli), regola se serve
-      });
-
-      rasterLayer.addTo(map);
-
-      // Prova a fare fit sui bounds del raster (se il vettoriale non ha già fatto fit)
-      try { map.fitBounds(rasterLayer.getBounds(), { padding: [20, 20] }); } catch (e) { }
-
-      // Piccola legenda dinamica
-      const legend = document.getElementById("legend");
-      legend.style.display = "block";
-      legend.innerHTML = `
-        <div style="margin-bottom:6px;font-weight:600">Raster (valori)</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span>${min.toFixed(2)}</span>
-          <div style="height:10px;width:160px;background:linear-gradient(to right, #0000ff, #ff0000);border-radius:6px;"></div>
-          <span>${max.toFixed(2)}</span>
+  <div class="panel">
+    <h4>Layer</h4>
+    <ul id="layerList">
+      <!-- <li draggable="true" class="layer-item">
+        <span class="material-symbols-outlined" style="font-size: 24px;">diagonal_line</span>
+        <span class="name">Vector layer</span>
+        <div class="actions">
+          <button class="btn eye" aria-label="Visibilità">👁</button>
+          <button class="btn menu" aria-label="Menu">⋮</button>
+          <div class="dropdown hidden">
+            <div class="dropdown-item">Zoom al layer</div>
+            <div class="dropdown-item">Elimina</div>
+          </div>
         </div>
-      `;
-    }
+      </li>
+      <li draggable="true" class="layer-item">
+        <span class="material-symbols-outlined" style="font-size: 24px;">blur_on</span>
+        <span class="name">Raster layer</span>
+        <div class="actions">
+          <button class="btn eye" aria-label="Visibilità">👁</button>
+          <button class="btn menu" aria-label="Menu">⋮</button>
+          <div class="dropdown hidden">
+            <div class="dropdown-item">Zoom al layer</div>
+            <div class="dropdown-item">Elimina</div>
+          </div>
+        </div>
+      </li> -->
+    </ul>
+    <div id="dropzone">Trascina qui file</div>
+  </div>
 
 
 
-    function handleMapActions(action) {
-      debugger
-      switch (action.action) {
-        case 'new_layer':   // TODO: Should check in a registry of layer if layer_data.src is already present before to add it
-          layer_data = action.layer_data;
-          if (layer_data.type === 'vector') {
-            addVectorLayer(s3uri_to_https(layer_data.src));
-          }
-          else if (layer_data.type === 'raster') {
-            addRasterLayer(s3uri_to_https(layer_data.src));
-          }
+  <script src="static/js/_utils.js"></script>
+  <script src="static/js/_map_utils.js"></script>
+  <script src="static/js/_chat_utils.js"></script>
+
+  <script>
+    // drag & drop riordinamento lista
+    const list = document.getElementById('layerList');
+    let dragged;
+    list.addEventListener('dragstart', e => dragged = e.target);
+    list.addEventListener('dragover', e => {
+      e.preventDefault();
+      const after = [...list.children].find(li =>
+        e.clientY < li.getBoundingClientRect().top + li.offsetHeight / 2
+      );
+      list.insertBefore(dragged, after || null);
+    });
+
+    // dropzone upload
+    const dz = document.getElementById('dropzone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover') });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('dragover');
+      [...e.dataTransfer.files].forEach(f => alert("File: " + f.name));
+    });
+
+    // toggle occhio
+    document.addEventListener("click", e => {
+      const isMenuBtn = e.target.classList.contains("menu");
+
+      // Chiudi tutti i menu
+      document.querySelectorAll(".dropdown").forEach(dd => dd.classList.add("hidden"));
+
+      // Se ho cliccato su un pulsante menu, riapro SOLO il suo
+      if (isMenuBtn) {
+        const dd = e.target.parentElement.querySelector(".dropdown");
+        dd.classList.remove("hidden");
       }
-    }
 
-
-
-    // ——— Chat UI minimale (come originale, mock) ———
-    const chatMsgs = document.getElementById('chatMsgs');
-    const chatInput = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendBtn');
-    function appendMsg(role, text) {
-      const div = document.createElement('div');
-      div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
-      div.textContent = text; chatMsgs.appendChild(div); chatMsgs.scrollTop = chatMsgs.scrollHeight;
-    }
-    function processAgentMsg(message) {
-      let msg_type = message.kwargs.type
-      let msg_content = message.kwargs.content
-      switch (msg_type) {
-        case 'ai':
-          appendMsg('bot', msg_content);
-          break;
-        case 'tool':
-          // load json from json string content
-          content = JSON.parse(msg_content.replace(/'/g, '"'));
-          if (content.map_actions) {
-            content.map_actions.map(action => handleMapActions(action));
-          }
-          console.log("Tool message content:", content);
-          break;
+      // Toggle occhio
+      if (e.target.classList.contains("eye")) {
+        e.target.textContent = e.target.textContent === "👁" ? "🚫" : "👁";
       }
-    }
+    });
 
-    async function handleSend() {
-      const t = chatInput.value.trim(); if (!t) return; appendMsg('user', t); chatInput.value = '';
-      fetch('/agent/prompt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: t }) })
-        .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
-        .then(d => {
-          (d.response_data || []).forEach(m => {
-            console.log(m);
-            processAgentMsg(m);
-
-            // appendMsg('bot', m)
-          });
-        })
-        .catch(() => appendMsg('bot', 'Si è verificato un errore.'));
-    }
-    sendBtn.onclick = handleSend;
-    chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
   </script>
 </body>
 
