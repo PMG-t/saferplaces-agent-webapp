@@ -24,5 +24,25 @@ def agent_prompt():
         return jsonify({'error': 'Invalid input'}), 400
     prompt = escape(data['prompt'])
 
-    subview = views.AgentPrompt(session["session_id"], prompt)
+    subview = views.AgentPrompt(thread_id=session["session_id"], layer_registry=session.get('layer_registry', []), prompt=prompt)
     return subview.send_response()
+
+@app.route('/layers/add', methods=['POST'])
+def add_layers():
+    data = request.get_json()
+    if not data or 'layers' not in data:
+        return jsonify({'error': 'Invalid input'}), 400
+
+    layers = data['layers']
+    if not isinstance(layers, list):
+        return jsonify({'error': 'Layers should be a list'}), 400
+
+    layer_registry = session.get('layer_registry', list())
+    layer_registry.extend(layers)
+    session['layer_registry'] = layer_registry
+    return jsonify({'status': 'success'})
+
+@app.route('/layers', methods=['GET'])
+def get_layers():
+    layer_registry = session.get('layer_registry', list())
+    return jsonify({'layers': layer_registry})

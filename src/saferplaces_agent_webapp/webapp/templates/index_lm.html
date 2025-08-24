@@ -50,6 +50,54 @@
       color: #111827;
     }
 
+    /* Hatt by https s3 */
+    .add-layer {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      color: #333;
+      margin: 16px 0 16px 0;
+      ;
+    }
+
+    .add-layer .field {
+      display: flex;
+      gap: 6px;
+    }
+
+    .add-layer input {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .add-layer input:focus {
+      border-color: #3a82f7;
+      box-shadow: 0 0 0 2px rgba(58, 130, 247, 0.15);
+    }
+
+    .add-layer button {
+      background: #3a82f7;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin: 1px;
+    }
+
+    .add-layer button:hover {
+      background: #336fd1;
+    }
+
+
     /* #layerList {
       list-style: none;
       padding: 0;
@@ -159,6 +207,7 @@
       color: #374151;
       font-size: 13px;
       transition: .2s;
+      margin: 16px 0 0px 0;
     }
 
     #dropzone.dragover {
@@ -184,36 +233,55 @@
       <textarea id="chatInput" placeholder="Scrivi un messaggio… (Invio per inviare, Shift+Invio per a capo)"></textarea>
       <button class="sendBtn" id="sendBtn">Invia</button>
     </div>
+    <div class="chat-options">
+      <label class="switch blue">
+        <input type="checkbox">
+        <span class="slider"></span>
+        <span class="label-text">Usa API</span>
+      </label>
+
+      <label class="switch green">
+        <input type="checkbox">
+        <span class="slider"></span>
+        <span class="label-text">Geometry Operation</span>
+      </label>
+
+      <label class="switch purple">
+        <input type="checkbox">
+        <span class="slider"></span>
+        <span class="label-text">Pass Layers</span>
+      </label>
+    </div>
   </section>
 
   <div class="panel">
     <h4>Layer</h4>
     <ul id="layerList">
-      <!-- <li draggable="true" class="layer-item">
-        <span class="material-symbols-outlined" style="font-size: 24px;">diagonal_line</span>
-        <span class="name">Vector layer</span>
+      <!-- Layer will be added here -->
+      <li class="layer-item" draggable="true">
+        <span class="icon">🌍</span>
+        <span class="name">Layer di esempio</span>
         <div class="actions">
-          <button class="btn eye" aria-label="Visibilità">👁</button>
-          <button class="btn menu" aria-label="Menu">⋮</button>
+          <button class="btn menu">⋮</button>
           <div class="dropdown hidden">
-            <div class="dropdown-item">Zoom al layer</div>
+            <div class="dropdown-item">Rinomina</div>
             <div class="dropdown-item">Elimina</div>
+            <div class="dropdown-item">Duplica</div>
           </div>
+          <span class="eye">👁</span>
         </div>
-      </li>
-      <li draggable="true" class="layer-item">
-        <span class="material-symbols-outlined" style="font-size: 24px;">blur_on</span>
-        <span class="name">Raster layer</span>
-        <div class="actions">
-          <button class="btn eye" aria-label="Visibilità">👁</button>
-          <button class="btn menu" aria-label="Menu">⋮</button>
-          <div class="dropdown hidden">
-            <div class="dropdown-item">Zoom al layer</div>
-            <div class="dropdown-item">Elimina</div>
-          </div>
-        </div>
-      </li> -->
     </ul>
+    <hr>
+    <!-- Add layer by url s3 http input -->
+    <div class="add-layer">
+      <label for="layerUrl">Aggiungi layer da URL</label>
+      <div class="field">
+        <input type="url" id="layerUrl" placeholder="https://...">
+        <button onclick="addLayerByUrl()">+</button>
+      </div>
+    </div>
+    <hr>
+    <!-- Dropzone drag -->
     <div id="dropzone">Trascina qui file</div>
   </div>
 

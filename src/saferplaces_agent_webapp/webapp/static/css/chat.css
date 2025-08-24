@@ -1,8 +1,9 @@
 /* Chat (come nel file originale) */
 .chat {
     position: fixed;
-    left: 18px;
-    bottom: 18px;
+    /* left: 18px; */
+    right: 18px;
+    bottom: 32px;
     width: 360px;
     max-height: 72vh;
     display: flex;
@@ -103,3 +104,67 @@
 .sendBtn:active {
     transform: translateY(1px)
 }
+
+/* Chat switch options */
+
+.chat-options {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 11px;
+  }
+
+  .switch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .switch input {
+    display: none;
+  }
+
+  .slider {
+    width: 34px;
+    height: 18px;
+    border-radius: 20px;
+    background: #ccc;
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  .slider::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.3s;
+  }
+
+  /* Stato attivo */
+  .switch input:checked + .slider::before {
+    transform: translateX(16px);
+  }
+
+  .switch.blue input:checked + .slider {
+    background: #3a82f7;
+  }
+  .switch.green input:checked + .slider {
+    background: #3ac77a;
+  }
+  .switch.purple input:checked + .slider {
+    background: #8a5cf7;
+  }
+
+  .label-text {
+    color: #333;
+    font-weight: 500;
+  }

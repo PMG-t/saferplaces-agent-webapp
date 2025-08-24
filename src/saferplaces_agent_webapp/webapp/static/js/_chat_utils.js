@@ -7,7 +7,7 @@ function handleMapActions(action) {
                 addVectorLayer(layer_data);
             }
             else if (layer_data.type === 'raster') {
-                addRasterLayer(layer_data);
+                // addRasterLayer(layer_data);
             }
     }
 }
@@ -18,7 +18,7 @@ const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 function appendMsg(role, text) {
     if (!text) return; // evita messaggi vuoti
-    const div = createEl('div', { class: 'msg ' + (role === 'user' ? 'user' : 'bot'), html: marked.parse(text) });
+    const div = createEl('div', { class: 'msg ' + (role === 'user' ? 'user' : 'ai'), html: marked.parse(text) });
     chatMsgs.appendChild(div); 
     chatMsgs.scrollTop = chatMsgs.scrollHeight;
 }
@@ -27,16 +27,18 @@ function processAgentMsg(message) {
     let msg_content = message.kwargs.content
     switch (msg_type) {
         case 'ai':
-            appendMsg('bot', msg_content);
+            appendMsg('ai', msg_content);
             break;
         case 'tool':
             // load json from json string content
-            content = JSON.parse(msg_content.replace(/'/g, '"'));
-            if (content.map_actions) {
-                content.map_actions.map(action => handleMapActions(action));
+            if (message.kwargs.name != "geospatial_ops_tool") {
+                content = JSON.parse(msg_content.replace(/'/g, '"'));
+                // content = msg_content
+                if (content.map_actions) {
+                    content.map_actions.map(action => handleMapActions(action));
+                }
+                console.log("Tool message content:", content);
             }
-            console.log("Tool message content:", content);
-            break;
     }
 }
 
@@ -50,7 +52,7 @@ async function handleSend() {
                 processAgentMsg(m); 
             });
         })
-        .catch(() => appendMsg('bot', 'Si è verificato un errore.'));
+        // .catch(() => appendMsg('bot', 'Si è verificato un errore.'));
 }
 sendBtn.onclick = handleSend;
 chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });

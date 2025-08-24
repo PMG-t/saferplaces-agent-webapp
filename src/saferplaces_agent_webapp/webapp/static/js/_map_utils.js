@@ -7,67 +7,77 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 let layerRegistry = []
 
+function add_layer(layer, layer_data) {
+    addLayerToRegistry(layer_data);
+    map.addLayer(layer);
+}
+
 function addLayerToRegistry(layer_data) {
     let layer_type_icon_map = {
         "vector": "diagonal_line",
         "raster": "blur_on",
     }
-    let layer_item = createEl("li",
-        { draggable: "true", class: "layer-item", dataset: layer_data },
-        [
-            createEl("span", { class: "material-symbols-outlined icon", text: layer_type_icon_map[layer_data.type] || "star" }),
-            createEl("span", { class: "name", text: layer_data.name }),
-            createEl("div", { class: "actions" }, [
-                createEl("button", { class: "btn eye", "aria-label": "Visibilità", text: "👁" }),
-                createEl("button", { class: "btn menu", "aria-label": "Menu", text: "⋮" }),
-                createEl("div", { class: "dropdown hidden" }, [
-                    createEl("div", { class: "dropdown-item", text: "Zoom al layer" }),
-                    createEl("div", { class: "dropdown-item", text: "Elimina" })
+    // call api to add layer to backendregistry 
+    fetch('layers/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            'layers': [ layer_data ]
+        })
+    })
+    .then(response => {
+        let layer_item = createEl("li",
+            { draggable: "true", class: "layer-item", dataset: layer_data },
+            [
+                createEl("span", { class: "material-symbols-outlined icon", text: layer_type_icon_map[layer_data.type] || "star" }),
+                createEl("span", { class: "name", text: layer_data.name }),
+                createEl("div", { class: "actions" }, [
+                    createEl("button", { class: "btn eye", "aria-label": "Visibilità", text: "👁" }),
+                    createEl("button", { class: "btn menu", "aria-label": "Menu", text: "⋮" }),
+                    createEl("div", { class: "dropdown hidden" }, [
+                        createEl("div", { class: "dropdown-item", text: "Zoom al layer" }),
+                        createEl("div", { class: "dropdown-item", text: "Elimina" })
+                    ])
                 ])
-            ])
-        ]
-    );
-    document.getElementById("layerList").appendChild(layer_item);
-    layerRegistry.push(layer_data)
+            ]
+        );
+        document.getElementById("layerList").appendChild(layer_item);
+        layerRegistry.push(layer_data)  
+    })
 }
 
+async function addLayerByUrl(url) {
+    url = document.getElementById("layerUrl").value.trim();
+    if (!url) {
+        alert("Inserisci un URL valido");
+        return;
+    }
+    let ext = justext(url).toLowerCase();
+    switch (ext) {
+        case 'geojson':
+            const layer_data = {
+                name: justfilename(url),
+                type: 'vector',
+                src: url
+            };
+            await addVectorLayer(layer_data);
+            break;
+        case 'tif':
+        case 'tiff':
+            const layer_data_raster = {
+                name: justfilename(url),
+                type: 'raster',
+                src: url
+            };
+            await addRasterLayer(layer_data_raster);
+            break;
+        default:
+            console.error("Tipo di file non supportato:", ext);
+            alert("Tipo di file non supportato: " + ext);
+            return;
+    }
+}
 
-// function addVectorLayer(layer_data) {
-//     let layer_src = layer_data.src;
-//     fetch(s3uri_to_https(layer_src))
-//         .then(r => r.json())
-//         .then(data => {
-//             const vg = L.vectorGrid.slicer(data, {
-//                 rendererFactory: L.canvas.tile,
-//                 maxZoom: 19,
-//                 interactive: true,
-//                 // parametri di semplificazione (più alto = più veloce, meno preciso)
-//                 tolerance: 3,       // default 3; alza a 5–8 per geometrie complesse
-//                 extent: 4096,       // risoluzione interna
-//                 indexMaxZoom: 5,    // livello max per indicizzazione
-//                 indexMaxPoints: 100000, // batch di indicizzazione
-
-//                 vectorTileLayerStyles: {
-//                     sliced: f => {
-//                         // stile unico per tutte le feature (nome layer = 'sliced')
-//                         if (f.type === 1) return { radius: 3, color: "#0061ff", weight: 1, fillOpacity: 0.7 };
-//                         return { color: "#0061ff", weight: 1, fillOpacity: 0.2 };
-//                     }
-//                 }
-//             })
-//                 .on('click', e => {
-//                     // popup minimale con prime proprietà
-//                     const props = e.layer.properties || {};
-//                     const rows = Object.entries(props).slice(0, 10)
-//                         .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
-//                     L.popup().setLatLng(e.latlng).setContent(`<table>${rows}</table>`).openOn(map);
-//                 })
-
-//             addLayerToRegistry(layer_data);
-//             map.addLayer(vg);
-//         });
-
-// }
 async function addVectorLayer(layer_data) {
     const layer_src = s3uri_to_https(layer_data.src);
     const cacheName = "geojson-cache";
@@ -93,6 +103,16 @@ async function addVectorLayer(layer_data) {
 
 // funzione separata per costruire il layer Leaflet
 function buildVectorLayer(data, layer_data) {
+    layer_style = layer_data.styles;
+    function getColor(f) {
+        if(!layer_style) {
+            return "#0061ff"; // colore di default
+        }
+        let style = layer_style[0]
+        if (style.type === 'categoric') {
+            return style.colormap[f[style.property]] || "#0061ff";
+        }
+    }
     const vg = L.vectorGrid.slicer(data, {
         rendererFactory: L.canvas.tile,
         maxZoom: 19,
@@ -103,8 +123,20 @@ function buildVectorLayer(data, layer_data) {
         indexMaxPoints: 100000,
         vectorTileLayerStyles: {
             sliced: f => {
-                if (f.type === 1) return { radius: 3, color: "#0061ff", weight: 1, fillOpacity: 0.7 };
-                return { color: "#0061ff", weight: 1, fillOpacity: 0.2 };
+                debugger
+                if (f.type === GEOM_TYPES.POINT) return { 
+                    radius: 3,
+                    color: "#0061ff",
+                    weight: 1,
+                    fillOpacity: 0.7
+                }
+                else {
+                    return { 
+                        color: getColor(f),
+                        weight: 1, 
+                        fillOpacity: 0.2 
+                    };
+                }
             }
         }
     })
@@ -115,8 +147,9 @@ function buildVectorLayer(data, layer_data) {
         L.popup().setLatLng(e.latlng).setContent(`<table>${rows}</table>`).openOn(map);
     });
 
-    addLayerToRegistry(layer_data);
-    map.addLayer(vg);
+    // addLayerToRegistry(layer_data);
+    // map.addLayer(vg);
+    add_layer(vg, layer_data);
 }
 
 async function addRasterLayer(layer_data) {
@@ -152,8 +185,9 @@ async function addRasterLayer(layer_data) {
     });
 
     // rasterLayer.addTo(map);
-    addLayerToRegistry(layer_data)
-    map.addLayer(rasterLayer);
+    // addLayerToRegistry(layer_data)
+    // map.addLayer(rasterLayer);
+    add_layer(rasterLayer, layer_data);
 
     // Prova a fare fit sui bounds del raster (se il vettoriale non ha già fatto fit)
     try { map.fitBounds(rasterLayer.getBounds(), { padding: [20, 20] }); } catch (e) { }
