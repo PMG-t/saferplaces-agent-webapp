@@ -165,14 +165,15 @@ async function addRasterLayer(layer_data) {
     console.log(`GeoRaster ${layer_data.src} → min: ${minVal}, max: ${maxVal}, nodata: ${nodata}`);
 
     let layer_style = layer_data.styles? layer_data.styles[0] : null;
-    let colormap = layer_style?.colormap || 'Gray'
+    let colormap = layer_style?.colormap || ['black', 'white']
     let scale = chroma.scale(colormap).domain([minVal, maxVal]);
 
     function lerp(a, b, t) { return a + (b - a) * t; }
     function valueToColor(v) {
-        // DOC: With Lerp
         if (v == null || Number.isNaN(v)) return null;
         if (nodata != null && v === nodata) return null;
+        
+        // DOC: With Lerp
         // const t = Math.max(0, Math.min(1, (v - minVal) / (maxVal - minVal || 1)));
         // // gradiente blu(0,0,255) -> rosso(255,0,0)
         // const r = Math.round(lerp(0, 255, t));
@@ -203,9 +204,9 @@ async function addRasterLayer(layer_data) {
     legend.innerHTML = `
         <div style="margin-bottom:6px;font-weight:600">Raster (valori)</div>
         <div style="display:flex;align-items:center;gap:8px">
-          <span>${min.toFixed(2)}</span>
+          <span>${minVal.toFixed(2)}</span>
           <div style="height:10px;width:160px;background:linear-gradient(to right, #0000ff, #00FF00);border-radius:6px;"></div>
-          <span>${max.toFixed(2)}</span>
+          <span>${maxVal.toFixed(2)}</span>
         </div>
       `;
 }

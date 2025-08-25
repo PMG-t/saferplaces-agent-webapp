@@ -24,7 +24,12 @@ def agent_prompt():
         return jsonify({'error': 'Invalid input'}), 400
     prompt = escape(data['prompt'])
 
-    subview = views.AgentPrompt(thread_id=session["session_id"], layer_registry=session.get('layer_registry', []), prompt=prompt)
+    subview = views.AgentPrompt(
+        thread_id = session["session_id"], 
+        prompt = prompt,
+        node_params = data.get('node_params', dict()),
+        layers = data.get('layers', list()), 
+    )
     return subview.send_response()
 
 @app.route('/layers/add', methods=['POST'])

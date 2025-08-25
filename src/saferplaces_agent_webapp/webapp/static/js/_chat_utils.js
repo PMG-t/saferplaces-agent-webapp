@@ -31,7 +31,7 @@ function processAgentMsg(message) {
             break;
         case 'tool':
             // load json from json string content
-            if (message.kwargs.name != "geospatial_ops_tool") {
+            if (message.kwargs.content && message.kwargs.name != "geospatial_ops_tool") {
                 content = JSON.parse(msg_content.replace(/'/g, '"'));
                 // content = msg_content
                 if (content.map_actions) {
@@ -43,16 +43,54 @@ function processAgentMsg(message) {
 }
 
 async function handleSend() {
-    const t = chatInput.value.trim(); if (!t) return; appendMsg('user', t); chatInput.value = '';
-    fetch('/agent/prompt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: t }) })
-        .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
-        .then(d => {
-            (d.response_data || []).forEach(m => {
-                console.log(m);
-                processAgentMsg(m); 
-            });
-        })
-        // .catch(() => appendMsg('bot', 'Si è verificato un errore.'));
+    const prompt = chatInput.value.trim(); 
+    if (!prompt) return; 
+    
+    appendMsg('user', prompt); 
+    
+    chatInput.value = '';
+
+    layers_state = document.getElementById("chat-option-layers").checked ? { layers: layerRegistry } : {};
+    // !!!: ugly asf
+    tool_choice = document.getElementById("chat-option-api").checked ? { node_params: { chatbot: { tool_choice: [ 'digital_twin_tool', 'safer_rain_tool', 'saferbuildings_tool' ] } } } : {};
+    tool_choice = document.getElementById("chat-option-geo-ops").checked ? { node_params: { chatbot: { tool_choice: [ 'geospatial_ops_tool' ] } } } : tool_choice;
+
+    fetch('/agent/prompt', {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            prompt: prompt,
+            ... layers_state,
+            ... tool_choice
+        }) 
+    })
+    .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
+    .then(d => {
+        (d.response_data || []).forEach(m => {
+            console.log(m);
+            processAgentMsg(m); 
+        });
+    })
+    // .catch(() => appendMsg('bot', 'Si è verificato un errore.'));
 }
 sendBtn.onclick = handleSend;
 chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+
+function toggleChatOptions(event) {
+    const apiCheckboxId = 'chat-option-api';
+    const geoOpsCheckboxId = 'chat-option-geo-ops';
+    const layersCheckboxId = 'chat-option-layers';
+
+    if (event.target.checked) {
+        switch (event.target.id) {
+            case apiCheckboxId:
+                document.getElementById(geoOpsCheckboxId).checked = false;
+                break;
+            case geoOpsCheckboxId:
+                document.getElementById(apiCheckboxId).checked = false;
+                break;
+            case layersCheckboxId:
+                break;
+        }
+    }
+}

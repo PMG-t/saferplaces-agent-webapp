@@ -239,19 +239,19 @@
     </div>
     <div class="chat-options">
       <label class="switch blue">
-        <input type="checkbox">
+        <input id="chat-option-api" type="checkbox", onchange="toggleChatOptions(event)">
         <span class="slider"></span>
-        <span class="label-text">Usa API</span>
+        <span class="label-text">SaferPlaces API</span>
       </label>
 
       <label class="switch green">
-        <input type="checkbox">
+        <input id="chat-option-geo-ops" type="checkbox", onchange="toggleChatOptions(event)">
         <span class="slider"></span>
         <span class="label-text">Geometry Operation</span>
       </label>
 
       <label class="switch purple">
-        <input type="checkbox">
+        <input id="chat-option-layers" type="checkbox", onchange="toggleChatOptions(event)">
         <span class="slider"></span>
         <span class="label-text">Pass Layers</span>
       </label>

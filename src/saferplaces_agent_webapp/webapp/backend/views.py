@@ -57,11 +57,12 @@ class SubView():
     
 
 class AgentPrompt(SubView):
-    def __init__(self, thread_id, layer_registry, prompt):
+    def __init__(self, thread_id, prompt, node_params, layers):
         super().__init__({
             'thread_id': thread_id,
-            'layer_registry': layer_registry,
-            'prompt': prompt
+            'prompt': prompt,
+            'node_params': node_params,
+            'layers': layers,
         })
         self.thread_id = thread_id
         self.lga_interface = get_lga_interface(thread_id)
@@ -70,7 +71,8 @@ class AgentPrompt(SubView):
         super().prepare_data()
         agent_responses = self.lga_interface.prompt(
             prompt=self.request_data['prompt'],
-            layer_registry=self.request_data.get('layer_registry', dict())
+            node_params=self.request_data.get('node_params', dict()),
+            layer_registry=self.request_data.get('layers', list())
         )
         self.set_response_data(agent_responses)
 
