@@ -7,7 +7,7 @@ function handleMapActions(action) {
                 addVectorLayer(layer_data);
             }
             else if (layer_data.type === 'raster') {
-                // addRasterLayer(layer_data);
+                addRasterLayer(layer_data);
             }
     }
 }

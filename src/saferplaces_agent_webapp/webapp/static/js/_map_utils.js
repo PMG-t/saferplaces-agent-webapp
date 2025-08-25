@@ -103,7 +103,7 @@ async function addVectorLayer(layer_data) {
 
 // funzione separata per costruire il layer Leaflet
 function buildVectorLayer(data, layer_data) {
-    layer_style = layer_data.styles;
+    let layer_style = layer_data.styles;
     function getColor(f) {
         if(!layer_style) {
             return "#0061ff"; // colore di default
@@ -146,9 +146,7 @@ function buildVectorLayer(data, layer_data) {
             .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
         L.popup().setLatLng(e.latlng).setContent(`<table>${rows}</table>`).openOn(map);
     });
-
-    // addLayerToRegistry(layer_data);
-    // map.addLayer(vg);
+    
     add_layer(vg, layer_data);
 }
 
@@ -161,20 +159,30 @@ async function addRasterLayer(layer_data) {
     // georaster.nodata, georaster.mins/maxs, georaster.pixelHeight etc. disponibili qui
 
     // Funzione colori semplice (da blu a rosso) usando min/max stimati
-    const min = (georaster.mins && georaster.mins[0] != null) ? georaster.mins[0] : 0;
-    const max = (georaster.maxs && georaster.maxs[0] != null) ? georaster.maxs[0] : 1;
+    const minVal = (georaster.mins && georaster.mins[0] != null) ? georaster.mins[0] : 0;
+    const maxVal = (georaster.maxs && georaster.maxs[0] != null) ? georaster.maxs[0] : 1;
     const nodata = Array.isArray(georaster.noDataValue) ? georaster.noDataValue[0] : georaster.noDataValue;
+    console.log(`GeoRaster ${layer_data.src} → min: ${minVal}, max: ${maxVal}, nodata: ${nodata}`);
+
+    let layer_style = layer_data.styles? layer_data.styles[0] : null;
+    let colormap = layer_style?.colormap || 'Gray'
+    let scale = chroma.scale(colormap).domain([minVal, maxVal]);
 
     function lerp(a, b, t) { return a + (b - a) * t; }
     function valueToColor(v) {
+        // DOC: With Lerp
         if (v == null || Number.isNaN(v)) return null;
         if (nodata != null && v === nodata) return null;
-        const t = Math.max(0, Math.min(1, (v - min) / (max - min || 1)));
-        // gradiente blu(0,0,255) -> rosso(255,0,0)
-        const r = Math.round(lerp(0, 255, t));
-        const g = 0;
-        const b = Math.round(lerp(255, 0, t));
-        return `rgba(${r},${g},${b},0.7)`;
+        // const t = Math.max(0, Math.min(1, (v - minVal) / (maxVal - minVal || 1)));
+        // // gradiente blu(0,0,255) -> rosso(255,0,0)
+        // const r = Math.round(lerp(0, 255, t));
+        // const g = Math.round(lerp(0, 255, 1 - t)); // verde va da 255 a 0
+        // const b = 0 // Math.round(lerp(255, 0, t));
+        // return `rgba(${r},${g},${b},0.9)`;
+        
+        // DOC: With Chroma.js
+        return scale(v).alpha(1).hex()
+
     }
 
     const rasterLayer = new GeoRasterLayer({
@@ -184,9 +192,6 @@ async function addRasterLayer(layer_data) {
         resolution: 256 // più alto = più veloce (meno dettagli), regola se serve
     });
 
-    // rasterLayer.addTo(map);
-    // addLayerToRegistry(layer_data)
-    // map.addLayer(rasterLayer);
     add_layer(rasterLayer, layer_data);
 
     // Prova a fare fit sui bounds del raster (se il vettoriale non ha già fatto fit)
@@ -199,7 +204,7 @@ async function addRasterLayer(layer_data) {
         <div style="margin-bottom:6px;font-weight:600">Raster (valori)</div>
         <div style="display:flex;align-items:center;gap:8px">
           <span>${min.toFixed(2)}</span>
-          <div style="height:10px;width:160px;background:linear-gradient(to right, #0000ff, #ff0000);border-radius:6px;"></div>
+          <div style="height:10px;width:160px;background:linear-gradient(to right, #0000ff, #00FF00);border-radius:6px;"></div>
           <span>${max.toFixed(2)}</span>
         </div>
       `;

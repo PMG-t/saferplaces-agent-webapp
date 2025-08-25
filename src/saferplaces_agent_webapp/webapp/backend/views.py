@@ -4,7 +4,10 @@ import pandas as pd
 import langgraph.types
 from flask import render_template, jsonify
 
+from langgraph.types import Command, interrupt
+
 import agent.graph as graph
+from .lga_interface import LGAInterface, get_lga_interface
 
 
 class ResponseStatus:
@@ -55,64 +58,41 @@ class SubView():
 
 class AgentPrompt(SubView):
     def __init__(self, thread_id, layer_registry, prompt):
-        super().__init__()
         super().__init__({
             'thread_id': thread_id,
             'layer_registry': layer_registry,
             'prompt': prompt
         })
         self.thread_id = thread_id
-        self.layer_registry = layer_registry
-        self.prompt = prompt
-        self.config = {"configurable": {"thread_id": self.thread_id}}
-        self.interrupt_is_open = False
-
+        self.lga_interface = get_lga_interface(thread_id)
+        
     def prepare_data(self):
         super().prepare_data()
-        
-        agent_messages = []
-        print("Thread ID:", self.thread_id, '-'*40)
-        for event in graph.stream({
-            "messages": [{"role": "user", "content": self.prompt}], 
-            'user_id': 'tommaso',
-            'layer_registry': self.layer_registry,
-        }, config=self.config):
-            for value in event.values():
-                if type(value) is tuple and type(value[0]) is langgraph.types.Interrupt:
-                    interrupt = value[0].value
-                    agent_messages.append({
-                        "kwargs": {
-                            "type": "ai",
-                            "content": interrupt['content'],
-                            "name": interrupt['interrupt_type'],
-                        }
-                    })
-                    self.interrupt_is_open = True
-                else:
-                    agent_messages.append(value["messages"][-1].to_json())
-        print('\n', '=' * 40, '\n')
-        self.set_response_data(agent_messages)
-        print(self.response_data)
+        agent_responses = self.lga_interface.prompt(
+            prompt=self.request_data['prompt'],
+            layer_registry=self.request_data.get('layer_registry', dict())
+        )
+        self.set_response_data(agent_responses)
 
     
-class SubViewSchemaFields(SubView):
-    def __init__(self, field_name, field_value):
-        super().__init__({
-            'field_name': field_name,
-            'field_value': field_value
-        })
-        self.field_name = field_name
-        self.field_value = field_value
+# class SubViewSchemaFields(SubView):
+#     def __init__(self, field_name, field_value):
+#         super().__init__({
+#             'field_name': field_name,
+#             'field_value': field_value
+#         })
+#         self.field_name = field_name
+#         self.field_value = field_value
         
-    def prepare_data(self):
-        super().prepare_data()
-        capi_records = dal.query_capi_by_field_value(self.field_name, self.field_value, projection={'_id': 0})
-        capi = pd.DataFrame(list(map(lambda capo: DBS.models.Capo.factory(capo).to_dict(json_format=True), capi_records)))
-        capi.drop(columns = [ col for col in capi.columns if col in dal.get_capo_fields() ], inplace=True)
-        fields = capi.to_dict(orient='list')
-        fields = { fk: list(sorted(filter(lambda v: pd.notnull(v), fv))) for fk,fv in fields.items()}
-        fields = { fk: fv for fk,fv in fields.items() if len(fv)>0 }
-        self.update_response_data({ 'fields': fields })
+#     def prepare_data(self):
+#         super().prepare_data()
+#         capi_records = dal.query_capi_by_field_value(self.field_name, self.field_value, projection={'_id': 0})
+#         capi = pd.DataFrame(list(map(lambda capo: DBS.models.Capo.factory(capo).to_dict(json_format=True), capi_records)))
+#         capi.drop(columns = [ col for col in capi.columns if col in dal.get_capo_fields() ], inplace=True)
+#         fields = capi.to_dict(orient='list')
+#         fields = { fk: list(sorted(filter(lambda v: pd.notnull(v), fv))) for fk,fv in fields.items()}
+#         fields = { fk: fv for fk,fv in fields.items() if len(fv)>0 }
+#         self.update_response_data({ 'fields': fields })
     
     
 
