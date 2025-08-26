@@ -28,7 +28,8 @@ def agent_prompt():
         thread_id = session["session_id"], 
         prompt = prompt,
         node_params = data.get('node_params', dict()),
-        layers = data.get('layers', list()), 
+        layers = data.get('layers', list()),
+        avaliable_tools = data.get('avaliable_tools', dict())
     )
     return subview.send_response()
 

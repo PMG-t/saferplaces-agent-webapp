@@ -12,7 +12,7 @@ class LGAInterface():
         self.thread_id = thread_id
         self.config = { "configurable": { "thread_id": self.thread_id } }
         
-    def prompt(self, prompt: str, node_params: dict = dict(), layer_registry: dict = dict()):
+    def prompt(self, prompt: str, node_params: dict = dict(), layer_registry: dict = dict(), avaliable_tools: list = list()):
 
         def get_stream_object():
             if self.is_in_interrupt:
@@ -26,6 +26,7 @@ class LGAInterface():
                     'user_id': 'tommaso',   # TODO: replace with session user_id when wiil be implemented
                     'layer_registry': layer_registry,
                     'node_params': node_params,
+                    'avaliable_tools': avaliable_tools
                 }
 
         print('\n', '=' * 40, '\n')

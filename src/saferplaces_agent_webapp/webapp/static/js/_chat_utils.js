@@ -32,8 +32,19 @@ function resizeChat() {
 
 function appendMsg(role, text) {
     if (!text) return; // evita messaggi vuoti
-    const div = createEl('div', { class: 'msg ' + (role === 'user' ? 'user' : 'ai'), html: marked.parse(text) });
-    chatMsgs.appendChild(div); 
+    const div = createEl('div', {
+        class: 'msg ' + (role === 'user' ? 'user' : 'ai'),
+        html: marked.parse(text, {
+            highlight: function (code, lang) {
+                if (hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            }
+        })
+    });
+    chatMsgs.appendChild(div);
+    div.querySelectorAll('pre code').forEach((block) => { hljs.highlightElement(block); });
     chatMsgs.scrollTop = chatMsgs.scrollHeight;
 }
 function processAgentMsg(message) {
@@ -57,34 +68,34 @@ function processAgentMsg(message) {
 }
 
 async function handleSend() {
-    const prompt = chatInput.value.trim(); 
-    if (!prompt) return; 
-    
-    appendMsg('user', prompt); 
-    
+    const prompt = chatInput.value.trim();
+    if (!prompt) return;
+
+    appendMsg('user', prompt);
+
     chatInput.value = '';
 
-    layers_state = document.getElementById("chat-option-layers").checked ? { layers: layerRegistry } : {};
+    let layers_state = document.getElementById("chat-option-layers").checked ? { layers: layerRegistry } : {};
     // !!!: ugly asf
-    tool_choice = document.getElementById("chat-option-api").checked ? { node_params: { chatbot: { tool_choice: [ 'digital_twin_tool', 'safer_rain_tool', 'saferbuildings_tool' ] } } } : {};
-    tool_choice = document.getElementById("chat-option-geo-ops").checked ? { node_params: { chatbot: { tool_choice: [ 'geospatial_ops_tool' ] } } } : tool_choice;
+    let avaliable_tools = document.getElementById("chat-option-api").checked ? { avaliable_tools: ['digital_twin_tool', 'safer_rain_tool', 'saferbuildings_tool'] } : [];
+    avaliable_tools = document.getElementById("chat-option-geo-ops").checked ? { avaliable_tools: ['geospatial_ops_tool'] } : avaliable_tools;
 
     fetch('/agent/prompt', {
-        method: 'POST', 
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             prompt: prompt,
-            ... layers_state,
-            ... tool_choice
-        }) 
+            ...layers_state,
+            ...avaliable_tools
+        })
     })
-    .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
-    .then(d => {
-        (d.response_data || []).forEach(m => {
-            console.log(m);
-            processAgentMsg(m); 
-        });
-    })
+        .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
+        .then(d => {
+            (d.response_data || []).forEach(m => {
+                console.log(m);
+                processAgentMsg(m);
+            });
+        })
     // .catch(() => appendMsg('bot', 'Si è verificato un errore.'));
 }
 sendBtn.onclick = handleSend;

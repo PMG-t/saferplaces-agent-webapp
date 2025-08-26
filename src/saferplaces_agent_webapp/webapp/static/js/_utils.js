@@ -29,6 +29,7 @@ function createEl(tag, attrs = {}, children = []) {
     }
 
     children.forEach(child => el.appendChild(child));
+    
     return el;
 }
 
