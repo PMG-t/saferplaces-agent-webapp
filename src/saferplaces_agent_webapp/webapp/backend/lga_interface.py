@@ -28,9 +28,12 @@ class LGAInterface():
                     'node_params': node_params,
                 }
 
+        print('\n', '=' * 40, '\n')
+
         agent_messages = []
         for event in graph.stream(get_stream_object(), config=self.config, stream_mode="updates"):
             for value in event.values():
+                print('\n', value, '\n')
                 if type(value) is tuple and type(value[0]) is Interrupt:
                     interrupt = value[0].value
                     agent_messages.append({

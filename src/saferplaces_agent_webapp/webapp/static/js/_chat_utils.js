@@ -13,9 +13,23 @@ function handleMapActions(action) {
 }
 
 // ——— Chat UI minimale (come originale, mock) ———
+const chatContainer = document.getElementById('chat');
 const chatMsgs = document.getElementById('chatMsgs');
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
+const chatWindowResizer = document.getElementById('chat-window-resizer');
+
+chatWindowResizer.addEventListener('click', resizeChat);
+function resizeChat() {
+    if (chatContainer.classList.contains('maximize')) {
+        chatContainer.classList.remove('maximize');
+        chatWindowResizer.textContent = 'pip_exit'; // cambia l'icona
+    } else {
+        chatContainer.classList.add('maximize');
+        chatWindowResizer.textContent = 'pip'; // cambia l'icona
+    }
+}
+
 function appendMsg(role, text) {
     if (!text) return; // evita messaggi vuoti
     const div = createEl('div', { class: 'msg ' + (role === 'user' ? 'user' : 'ai'), html: marked.parse(text) });

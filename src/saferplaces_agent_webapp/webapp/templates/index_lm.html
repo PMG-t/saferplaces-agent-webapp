@@ -40,7 +40,7 @@
       padding: 14px 12px;
       border-radius: 14px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
-      font-family: system-ui, sans-serif;
+      font-family: ui-sans-serif,-apple-system,system-ui,Segoe UI,Helvetica,Apple Color Emoji,Arial,sans-serif,Segoe UI Emoji,Segoe UI Symbol;
       font-size: 14px;
       color: #1f2937;
       width: 240px;
@@ -59,7 +59,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      font-family: "Inter", sans-serif;
+      font-family: ui-sans-serif,-apple-system,system-ui,Segoe UI,Helvetica,Apple Color Emoji,Arial,sans-serif,Segoe UI Emoji,Segoe UI Symbol;
       font-size: 14px;
       color: #333;
       margin: 16px 0 16px 0;
@@ -227,19 +227,20 @@
   <div id="legend" class="legend" style="display:none"></div>
 
   <!-- CHAT flottante (come originale) -->
-  <section class="chat" aria-label="Chat con agente AI">
+  <section id="chat" class="chat" aria-label="Chat con agente AI">
     <header>
-      <h3>Assistente AI</h3>
-      <small>semplice & minimale</small>
+      <h4>Assistente AI</h4>
+      <!-- x button on right -->
+      <span id="chat-window-resizer" class="resize-ico material-symbols-outlined">pip_exit</span>
     </header>
     <div id="chatMsgs" role="log" aria-live="polite"></div>
     <div class="inputRow">
-      <textarea id="chatInput" placeholder="Scrivi un messaggio… (Invio per inviare, Shift+Invio per a capo)"></textarea>
-      <button class="sendBtn" id="sendBtn">Invia</button>
+      <textarea id="chatInput" placeholder="Write a message... (Enter to send, Shift+Enter for new line)"></textarea>
+      <button class="sendBtn" id="sendBtn">Send</button>
     </div>
     <div class="chat-options">
       <label class="switch blue">
-        <input id="chat-option-api" type="checkbox", onchange="toggleChatOptions(event)">
+        <input id="chat-option-api" type="checkbox", onchange="toggleChatOptions(event)" checked>
         <span class="slider"></span>
         <span class="label-text">SaferPlaces API</span>
       </label>
