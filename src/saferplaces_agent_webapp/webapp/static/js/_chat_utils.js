@@ -55,7 +55,7 @@ function processAgentMsg(message) {
             appendMsg('ai', msg_content);
             break;
         case 'tool':
-            // load json from json string content
+            
             if (message.kwargs.content && message.kwargs.name != "geospatial_ops_tool") {
                 content = JSON.parse(msg_content.replace(/'/g, '"'));
                 // content = msg_content
@@ -105,6 +105,8 @@ function toggleChatOptions(event) {
     const apiCheckboxId = 'chat-option-api';
     const geoOpsCheckboxId = 'chat-option-geo-ops';
     const layersCheckboxId = 'chat-option-layers';
+
+    // TODO: si potrebbe fare route per update state grafo subito anzi che dopo il submit del messaggio di prompt
 
     if (event.target.checked) {
         switch (event.target.id) {
