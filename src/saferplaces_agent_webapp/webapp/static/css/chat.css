@@ -71,6 +71,19 @@
   line-height: 1.5;
   color: #e6ecf5;
 }
+/* Per browser basati su WebKit (Chrome, Edge, Safari, Opera) */
+#chatMsgs::-webkit-scrollbar {
+  width: 8px;           /* larghezza della scrollbar */
+  height: 6px;          /* altezza della scrollbar */
+  background: transparent; /* rende trasparente lo sfondo */
+}
+#chatMsgs::-webkit-scrollbar-track {
+  background: transparent; /* parte fissa invisibile */
+}
+#chatMsgs::-webkit-scrollbar-thumb {
+  background-color: #d3d3d3; /* colore della barra */
+  border-radius: 16px;                         /* arrotondamento */
+}
 
 .msg {
   max-width: 80%;
@@ -186,6 +199,26 @@
 }
 
 .sendBtn:active {
+  transform: translateY(1px);
+}
+
+.interruptBtn {
+  height: 32px;
+  padding: 0 14px;
+  margin: 0 0 18px 0;
+  border-radius: 14px;
+  background: #8a5cf7;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: ui-sans-serif, -apple-system, system-ui, Segoe UI, Helvetica, Apple Color Emoji, Arial, sans-serif, Segoe UI Emoji, Segoe UI Symbol;
+  font-weight: 500;
+  transition: background 0.3s, transform 0.1s;
+}
+.interruptBtn:hover {
+  background: #7b3fe4;
+}
+.interruptBtn:active {
   transform: translateY(1px);
 }
 

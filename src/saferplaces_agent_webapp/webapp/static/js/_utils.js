@@ -23,6 +23,9 @@ function createEl(tag, attrs = {}, children = []) {
             for (const [dataKey, dataVal] of Object.entries(value)) {
                 el.dataset[dataKey] = dataVal;
             }
+        } else if (key.startsWith("on") && typeof value === "function") {
+            let eventName = key.slice(2).toLowerCase();
+            el.addEventListener(eventName, value);
         } else {
             el.setAttribute(key, value);
         }

@@ -43,22 +43,32 @@ function appendMsg(role, text) {
             }
         })
     });
+    if (role == 'interrupt') {
+        const btn_resume = createEl('button', {
+            class: 'interruptBtn',
+            text: 'Confirm',
+            onclick: () => { console.log('Resume action confirmed'); resumeInterrupt(); }
+        })
+        div.appendChild(btn_resume);
+    }
     chatMsgs.appendChild(div);
     div.querySelectorAll('pre code').forEach((block) => { hljs.highlightElement(block); });
     chatMsgs.scrollTop = chatMsgs.scrollHeight;
 }
-function processAgentMsg(message) {
+function processAgentMsg(state) {
+    let message = state.message
     let msg_type = message.kwargs.type
     let msg_content = message.kwargs.content
     switch (msg_type) {
         case 'ai':
             appendMsg('ai', msg_content);
             break;
+        case 'interrupt':
+            appendMsg('interrupt', msg_content);
+            break;
         case 'tool':
-            
-            if (message.kwargs.content && message.kwargs.name != "geospatial_ops_tool") {
-                content = JSON.parse(msg_content.replace(/'/g, '"'));
-                // content = msg_content
+            if (message.kwargs.content) { //} && message.kwargs.name != "geospatial_ops_tool") {
+                let content = JSON.parse(msg_content.replace(/'/g, '"'));
                 if (content.map_actions) {
                     content.map_actions.map(action => handleMapActions(action));
                 }
@@ -89,17 +99,46 @@ async function handleSend() {
             ...avaliable_tools
         })
     })
-        .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
-        .then(d => {
-            (d.response_data || []).forEach(m => {
-                console.log(m);
-                processAgentMsg(m);
-            });
-        })
+    .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
+    .then(d => {
+        (d.response_data || []).forEach(m => {
+            console.log(m);
+            processAgentMsg(m);
+        });
+    })
     // .catch(() => appendMsg('bot', 'Si è verificato un errore.'));
 }
 sendBtn.onclick = handleSend;
 chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+
+
+async function resumeInterrupt() {
+    let default_msg = 'I confirm. You can proceed.'
+
+    // TODO: Move this to a function
+    let layers_state = document.getElementById("chat-option-layers").checked ? { layers: layerRegistry } : {};
+    // !!!: ugly asf
+    let avaliable_tools = document.getElementById("chat-option-api").checked ? { avaliable_tools: ['digital_twin_tool', 'safer_rain_tool', 'saferbuildings_tool'] } : [];
+    avaliable_tools = document.getElementById("chat-option-geo-ops").checked ? { avaliable_tools: ['geospatial_ops_tool'] } : avaliable_tools;
+
+    fetch('/agent/prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            prompt: default_msg,
+            ...layers_state,
+            ...avaliable_tools
+        })
+    })
+    .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
+    .then(d => {
+        (d.response_data || []).forEach(m => {
+            console.log(m);
+            processAgentMsg(m);
+        });
+    })
+}
+
 
 function toggleChatOptions(event) {
     const apiCheckboxId = 'chat-option-api';

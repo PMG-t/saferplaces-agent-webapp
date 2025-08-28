@@ -39,16 +39,27 @@ class LGAInterface():
                 if type(value) is tuple and type(value[0]) is Interrupt:
                     interrupt = value[0].value
                     agent_messages.append({
-                        "kwargs": {
-                            "type": "ai",   # TODO: 1 - use 'interrupt' - cliend will knows and will handle like ai (maybe)
-                            "content": interrupt['content'],
-                            "name": interrupt['interrupt_type'],
+                        "message": {
+                            "kwargs": {
+                                "type": "interrupt",
+                                "content": interrupt['content'],
+                                "name": interrupt['interrupt_type'],
+                            }
                         }
                     })
                     self.is_in_interrupt = True
                 else:
-                    # !!!: TODO: 2 - PASSARE TUTTA LA VALUE IN JSON CHE CONTIENE TUTTO LO STATO DEL GRAFO
-                    agent_messages.append(value["messages"][-1].to_json())
+                    if 'messages' in value:
+                        value['message'] = value['messages'][-1].to_json()
+                        del value['messages']
+
+                    if 'node_params' in value:
+                        for node, params in value['node_params'].items():
+                            if 'tool_message' in params:
+                                value['node_params'][node]['tool_message'] = params['tool_message'].to_json()
+                            
+                    # value['message'] = value.pop('messages')[-1].to_json() if 'messages' in value else dict()   # !!!: kinda weak ...
+                    agent_messages.append(value)
 
         print('\n', '=' * 40, '\n')
         

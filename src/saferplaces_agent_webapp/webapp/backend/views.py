@@ -53,7 +53,10 @@ class SubView():
         
     def send_response(self):
         self.prepare_data()
-        return jsonify(self.response_data)
+        try:
+            return jsonify(self.response_data)
+        except Exception as e:
+            print(f"Error views.SubView.send_response. data : {self.response_data}. Error: {e}")
     
 
 class AgentPrompt(SubView):
