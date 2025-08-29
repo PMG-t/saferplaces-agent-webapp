@@ -43,6 +43,7 @@ def add_layers():
     if not isinstance(layers, list):
         return jsonify({'error': 'Layers should be a list'}), 400
 
+    # TODO: Update state graph 'layer_registry' + include meta info such as px-res, totalbounds, width, height, attribute names
     layer_registry = session.get('layer_registry', list())
     layer_registry.extend(layers)
     session['layer_registry'] = layer_registry
