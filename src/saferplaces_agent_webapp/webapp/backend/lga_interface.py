@@ -1,6 +1,7 @@
 from langgraph.types import Command, Interrupt
 
 import agent.graph as graph
+import agent.common
 
 
 # DOC: LangGraph Agent Interface
@@ -8,9 +9,12 @@ class LGAInterface():
 
     is_in_interrupt: bool = False
 
-    def __init__(self, thread_id: str):
+    def __init__(self, thread_id: str, user_id: str):
         self.thread_id = thread_id
+        self.user_id = user_id
         self.config = { "configurable": { "thread_id": self.thread_id } }
+        self.agent_common = agent.common
+
         
     def prompt(self, prompt: str, node_params: dict = dict(), layer_registry: dict = dict(), avaliable_tools: list = list()):
 
@@ -23,7 +27,7 @@ class LGAInterface():
                     "messages": [
                         { "role": "user", "content": prompt }
                     ], 
-                    'user_id': 'tommaso',   # TODO: replace with session user_id when wiil be implemented
+                    'user_id': self.user_id,
                     'layer_registry': layer_registry,
                     'node_params': node_params,
                     'avaliable_tools': avaliable_tools
@@ -71,7 +75,7 @@ class LGAInterface():
 
 LGA_INTERFACES_REGISTRY = dict()
 
-def get_lga_interface(thread_id: str) -> LGAInterface:
+def get_lga_interface(thread_id: str, user_id: str) -> LGAInterface:
     if thread_id not in LGA_INTERFACES_REGISTRY:
-        LGA_INTERFACES_REGISTRY[thread_id] = LGAInterface(thread_id)
+        LGA_INTERFACES_REGISTRY[thread_id] = LGAInterface(thread_id, user_id)
     return LGA_INTERFACES_REGISTRY[thread_id]

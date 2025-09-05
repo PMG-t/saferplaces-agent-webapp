@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="../static/css/chat.css">
+</head>
+
+
+
+<div id="map"></div>
+<div id="legend" class="legend" style="display:none"></div>
+
+<section id="chat" class="chat" aria-label="Chat con agente AI">
+    <header>
+        <h4>Assistente AI</h4>
+        <span id="chat-window-resizer" class="resize-ico material-symbols-outlined">pip_exit</span>
+    </header>
+    <div id="chatMsgs" role="log" aria-live="polite"></div>
+    <div class="inputRow">
+        <textarea id="chatInput" placeholder="Write a message... (Enter to send, Shift+Enter for new line)"></textarea>
+        <button class="sendBtn" id="sendBtn">Send</button>
+    </div>
+    <div class="chat-options">
+        <label class="switch blue">
+            <input id="chat-option-api" type="checkbox" , onchange="toggleChatOptions(event)" checked>
+            <span class="slider"></span>
+            <span class="label-text">SaferPlaces API</span>
+        </label>
+
+        <label class="switch green">
+            <input id="chat-option-geo-ops" type="checkbox" , onchange="toggleChatOptions(event)">
+            <span class="slider"></span>
+            <span class="label-text">Geospatial Operations</span>
+        </label>
+
+        <label class="switch purple">
+            <input id="chat-option-layers" type="checkbox" , onchange="toggleChatOptions(event)" checked>
+            <span class="slider"></span>
+            <span class="label-text">Pass Layers</span>
+        </label>
+    </div>
+</section>

@@ -1,16 +1,16 @@
-function handleMapActions(action) {
-    debugger
-    switch (action.action) {
-        case 'new_layer':   // TODO: Should check in a registry of layer if layer_data.src is already present before to add it
-            layer_data = action.layer_data;
-            if (layer_data.type === 'vector') {
-                addVectorLayer(layer_data);
-            }
-            else if (layer_data.type === 'raster') {
-                addRasterLayer(layer_data);
-            }
-    }
-}
+// function handleMapActions(action) {
+//     debugger
+//     switch (action.action) {
+//         case 'new_layer':   // TODO: Should check in a registry of layer if layer_data.src is already present before to add it
+//             layer_data = action.layer_data;
+//             if (layer_data.type === 'vector') {
+//                 addVectorLayer(layer_data);
+//             }
+//             else if (layer_data.type === 'raster') {
+//                 addRasterLayer(layer_data);
+//             }
+//     }
+// }
 
 // ——— Chat UI minimale (come originale, mock) ———
 const chatContainer = document.getElementById('chat');
@@ -70,7 +70,7 @@ function processAgentMsg(state) {
             if (message.kwargs.content) { //} && message.kwargs.name != "geospatial_ops_tool") {
                 let content = JSON.parse(msg_content.replace(/'/g, '"'));
                 if (content.map_actions) {
-                    content.map_actions.map(action => handleMapActions(action));
+                    content.map_actions.map(action => handleMapAction(action));
                 }
                 console.log("Tool message content:", content);
             }

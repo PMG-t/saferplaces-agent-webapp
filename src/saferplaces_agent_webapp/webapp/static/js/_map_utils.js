@@ -5,7 +5,21 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
 
-let layerRegistry = []
+let layerRegistry = serverData.page_data.project.layer_registry || [];
+serverData.page_data.project.init_actions.map_actions.map(map_action => handleMapAction(map_action));
+
+function handleMapAction(action) {
+    switch (action.action) {
+        case 'new_layer':   // TODO: Should check in a registry of layer if layer_data.src is already present before to add it
+            layer_data = action.layer_data;
+            if (layer_data.type === 'vector') {
+                addVectorLayer(layer_data);
+            }
+            else if (layer_data.type === 'raster') {
+                addRasterLayer(layer_data);
+            }
+    }
+}
 
 function add_layer(layer, layer_data) {
     addLayerToRegistry(layer_data);
@@ -13,19 +27,12 @@ function add_layer(layer, layer_data) {
 }
 
 function addLayerToRegistry(layer_data) {
-    let layer_type_icon_map = {
-        "vector": "diagonal_line",
-        "raster": "blur_on",
-    }
-    // call api to add layer to backendregistry 
-    fetch('layers/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            'layers': [ layer_data ]
-        })
-    })
-    .then(response => {
+
+    function addLayerToPanel(layer_data) {
+        let layer_type_icon_map = {
+            "vector": "diagonal_line",
+            "raster": "blur_on",
+        }
         let layer_item = createEl("li",
             { draggable: "true", class: "layer-item", dataset: layer_data },
             [
@@ -42,8 +49,20 @@ function addLayerToRegistry(layer_data) {
             ]
         );
         document.getElementById("layerList").appendChild(layer_item);
-        layerRegistry.push(layer_data)  
-    })
+    }
+
+    addLayerToPanel(layer_data);
+
+    if (! layerRegistry.map(l => l.src).includes(layer_data.src)) {
+        fetch(`/project/${serverData.page_data.project.project_id}/layers/new`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                'layers': [layer_data]
+            })
+        })
+        .then(response => { layerRegistry.push(layer_data) })
+    }
 }
 
 async function addLayerByUrl(url) {
@@ -105,7 +124,7 @@ async function addVectorLayer(layer_data) {
 function buildVectorLayer(data, layer_data) {
     let layer_style = layer_data.styles;
     function getColor(f) {
-        if(!layer_style) {
+        if (!layer_style) {
             return "#0061ff"; // colore di default
         }
         let style = layer_style[0]
@@ -123,30 +142,29 @@ function buildVectorLayer(data, layer_data) {
         indexMaxPoints: 100000,
         vectorTileLayerStyles: {
             sliced: f => {
-                debugger
-                if (f.type === GEOM_TYPES.POINT) return { 
+                if (f.type === GEOM_TYPES.POINT) return {
                     radius: 3,
                     color: "#0061ff",
                     weight: 1,
                     fillOpacity: 0.7
                 }
                 else {
-                    return { 
+                    return {
                         color: getColor(f),
-                        weight: 1, 
-                        fillOpacity: 0.2 
+                        weight: 1,
+                        fillOpacity: 0.2
                     };
                 }
             }
         }
     })
-    .on('click', e => {
-        const props = e.layer.properties || {};
-        const rows = Object.entries(props).slice(0, 10)
-            .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
-        L.popup().setLatLng(e.latlng).setContent(`<table>${rows}</table>`).openOn(map);
-    });
-    
+        .on('click', e => {
+            const props = e.layer.properties || {};
+            const rows = Object.entries(props).slice(0, 10)
+                .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
+            L.popup().setLatLng(e.latlng).setContent(`<table>${rows}</table>`).openOn(map);
+        });
+
     add_layer(vg, layer_data);
 }
 
@@ -164,7 +182,7 @@ async function addRasterLayer(layer_data) {
     const nodata = Array.isArray(georaster.noDataValue) ? georaster.noDataValue[0] : georaster.noDataValue;
     console.log(`GeoRaster ${layer_data.src} → min: ${minVal}, max: ${maxVal}, nodata: ${nodata}`);
 
-    let layer_style = layer_data.styles? layer_data.styles[0] : null;
+    let layer_style = layer_data.styles ? layer_data.styles[0] : null;
     let colormap = layer_style?.colormap || ['black', 'white']
     let scale = chroma.scale(colormap).domain([minVal, maxVal]);
 
@@ -172,7 +190,7 @@ async function addRasterLayer(layer_data) {
     function valueToColor(v) {
         if (v == null || Number.isNaN(v)) return null;
         if (nodata != null && v === nodata) return null;
-        
+
         // DOC: With Lerp
         // const t = Math.max(0, Math.min(1, (v - minVal) / (maxVal - minVal || 1)));
         // // gradiente blu(0,0,255) -> rosso(255,0,0)
@@ -180,7 +198,7 @@ async function addRasterLayer(layer_data) {
         // const g = Math.round(lerp(0, 255, 1 - t)); // verde va da 255 a 0
         // const b = 0 // Math.round(lerp(255, 0, t));
         // return `rgba(${r},${g},${b},0.9)`;
-        
+
         // DOC: With Chroma.js
         return scale(v).alpha(1).hex()
 

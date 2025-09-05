@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="../static/css/layers.css">
+</head>
+
+<div class="panel">
+    <h4>Layer</h4>
+    <ul id="layerList">
+        <!-- Layer will be added here -->
+        <li class="layer-item" draggable="true">
+            <span class="icon">🌍</span>
+            <span class="name">Layer di esempio</span>
+            <div class="actions">
+                <button class="btn menu">⋮</button>
+                <div class="dropdown hidden">
+                    <div class="dropdown-item">Rinomina</div>
+                    <div class="dropdown-item">Elimina</div>
+                    <div class="dropdown-item">Duplica</div>
+                </div>
+                <span class="eye">👁</span>
+            </div>
+    </ul>
+    <hr>
+    <!-- Add layer by url s3 http input -->
+    <div class="add-layer">
+        <label for="layerUrl">Aggiungi layer da URL</label>
+        <div class="field">
+            <input type="url" id="layerUrl" placeholder="https://...">
+            <button onclick="addLayerByUrl()">+</button>
+        </div>
+    </div>
+    <hr>
+    <!-- Dropzone drag -->
+    <div id="dropzone">Trascina qui file</div>
+</div>
+
+<script>
+    // drag & drop riordinamento lista
+    const list = document.getElementById('layerList');
+    let dragged;
+    list.addEventListener('dragstart', e => dragged = e.target);
+    list.addEventListener('dragover', e => {
+        e.preventDefault();
+        const after = [...list.children].find(li =>
+            e.clientY < li.getBoundingClientRect().top + li.offsetHeight / 2
+        );
+        list.insertBefore(dragged, after || null);
+    });
+
+    // dropzone upload
+    const dz = document.getElementById('dropzone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover') });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', e => {
+        e.preventDefault(); dz.classList.remove('dragover');
+        [...e.dataTransfer.files].forEach(f => alert("File: " + f.name));
+    });
+
+    // toggle occhio
+    document.addEventListener("click", e => {
+        const isMenuBtn = e.target.classList.contains("menu");
+
+        // Chiudi tutti i menu
+        document.querySelectorAll(".dropdown").forEach(dd => dd.classList.add("hidden"));
+
+        // Se ho cliccato su un pulsante menu, riapro SOLO il suo
+        if (isMenuBtn) {
+            const dd = e.target.parentElement.querySelector(".dropdown");
+            dd.classList.remove("hidden");
+        }
+
+        // Toggle occhio
+        if (e.target.classList.contains("eye")) {
+            e.target.textContent = e.target.textContent === "👁" ? "🚫" : "👁";
+        }
+    });
+</script>
+
+</html>

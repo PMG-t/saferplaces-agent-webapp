@@ -1,353 +1,162 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SaferPlacesAgent</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WebApp</title>
 
-    <!-- OpenLayers CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@latest/ol.css">
+  <!-- Leaflet CSS/JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <style>
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-            background: #05080f;
-        }
+  <script src="https://unpkg.com/georaster"></script>
+  <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+  <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
 
-        #map {
-            position: fixed;
-            inset: 0
-        }
+  <link rel="stylesheet" href="static/css/index.css" />
+  <link rel="stylesheet" href="static/css/chat.css" />
 
-        /* Panel */
-        .panel {
-            position: fixed;
-            top: 8px;
-            left: 64px;
-            padding: 10px 14px;
-            background: rgba(10, 16, 28, .85);
-            border: 1px solid #1c2a44;
-            border-radius: 14px;
-            color: #eaf2ff;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, .35);
-        }
+  <!-- Markdown -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+  <!-- Higlight code in html markodw -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"> -->
 
-        select,
-        input {
-            margin-top: 4px;
-            background: #0d1627;
-            color: #fff;
-            border: 1px solid #24385c;
-            border-radius: 10px;
-            padding: 6px 10px
-        }
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  
 
-        label {
-            font-size: 12px;
-            opacity: .8;
-            display: block;
-            margin-top: 6px
-        }
+  <!-- Material Symbols Outlined -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
-        /* Layer list (auto) */
-        .layers {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #1c2a44;
-        }
+  <!-- Colormaps -->
+  <script src="https://cdn.jsdelivr.net/npm/chroma-js@2.4.2/chroma.min.js"></script>
 
-        .layers h4 {
-            margin: 0 0 6px 0;
-            font-size: 12px;
-            opacity: .75;
-            font-weight: 600;
-        }
+  
+  <!-- Bootstrap -->
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script> -->
 
-        .layer-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 6px 0;
-        }
 
-        .layer-item input[type="range"] {
-            width: 120px;
-        }
-
-        /* Chat (come nel file originale) */
-        .chat {
-            position: fixed;
-            left: 18px;
-            bottom: 18px;
-            width: 360px;
-            max-height: 72vh;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 12px;
-            color: var(--ink);
-            background: var(--panel);
-            border: 1px solid var(--ring);
-            border-radius: 16px;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 10px 32px rgba(0, 0, 0, .38)
-        }
-
-        .chat header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between
-        }
-
-        .chat h3 {
-            margin: 0;
-            font-size: 14px;
-            letter-spacing: .3px
-        }
-
-        .chat small {
-            color: var(--muted)
-        }
-
-        #chatMsgs {
-            flex: 1;
-            overflow: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 6px;
-            border-radius: 10px;
-            background: rgba(7, 12, 22, .5);
-            border: 1px solid #162542
-        }
-
-        .msg {
-            max-width: 85%;
-            padding: 8px 10px;
-            border-radius: 12px;
-            font-size: 13px;
-            line-height: 1.3;
-            word-wrap: break-word
-        }
-
-        .msg.user {
-            align-self: flex-end;
-            background: var(--bubble2);
-            border: 1px solid #25416d
-        }
-
-        .msg.bot {
-            align-self: flex-start;
-            background: var(--bubble);
-            border: 1px solid #23395f
-        }
-
-        .inputRow {
-            display: flex;
-            gap: 8px;
-            align-items: flex-end
-        }
-
-        #chatInput {
-            flex: 1;
-            resize: none;
-            height: 38px;
-            max-height: 160px;
-            background: #0d1627;
-            color: #fff;
-            border: 1px solid #24385c;
-            border-radius: 12px;
-            padding: 8px 10px
-        }
-
-        .sendBtn {
-            height: 38px;
-            padding: 0 12px;
-            border-radius: 12px;
-            background: #0f1f39;
-            color: #eaf2ff;
-            border: 1px solid #294675;
-            cursor: pointer
-        }
-
-        .sendBtn:active {
-            transform: translateY(1px)
-        }
-    </style>
 </head>
 
 <body>
-    <div id="map"></div>
+  <div id="map"></div>
+  <div id="legend" class="legend" style="display:none"></div>
 
-    <div class="panel">
-        <label for="styleSel">Basemap</label>
-        <select id="styleSel">
-            <option value="open">OSM (Open)</option>
-            <option value="positron">OSM (Carto Positron)</option>
-            <option value="esri">Esri Satellite</option>
-            <option value="mapbox">Mapbox Streets</option>
-        </select>
-        <label for="mbToken">Mapbox Token</label>
-        <input id="mbToken" placeholder="pk.***" size="20" />
-
-        <div class="layers" id="layersBox" hidden>
-            <h4>Layers</h4>
-            <div id="layers"></div>
-        </div>
+  <!-- CHAT flottante (come originale) -->
+  <section id="chat" class="chat" aria-label="Chat con agente AI">
+    <header>
+      <h4>Assistente AI</h4>
+      <!-- x button on right -->
+      <span id="chat-window-resizer" class="resize-ico material-symbols-outlined">pip_exit</span>
+    </header>
+    <div id="chatMsgs" role="log" aria-live="polite"></div>
+    <div class="inputRow">
+      <textarea id="chatInput" placeholder="Write a message... (Enter to send, Shift+Enter for new line)"></textarea>
+      <button class="sendBtn" id="sendBtn">Send</button>
     </div>
+    <div class="chat-options">
+      <label class="switch blue">
+        <input id="chat-option-api" type="checkbox", onchange="toggleChatOptions(event)" checked>
+        <span class="slider"></span>
+        <span class="label-text">SaferPlaces API</span>
+      </label>
 
-    <!-- CHAT flottante (come originale) -->
-    <section class="chat" aria-label="Chat con agente AI">
-        <header>
-            <h3>Assistente AI</h3>
-            <small>semplice & minimale</small>
-        </header>
-        <div id="chatMsgs" role="log" aria-live="polite"></div>
-        <div class="inputRow">
-            <textarea id="chatInput" placeholder="Scrivi un messaggio… (Invio per inviare, Shift+Invio per a capo)"></textarea>
-            <button class="sendBtn" id="sendBtn">Invia</button>
+      <label class="switch green">
+        <input id="chat-option-geo-ops" type="checkbox", onchange="toggleChatOptions(event)">
+        <span class="slider"></span>
+        <span class="label-text">Geospatial Operations</span>
+      </label>
+
+      <label class="switch purple">
+        <input id="chat-option-layers" type="checkbox", onchange="toggleChatOptions(event)">
+        <span class="slider"></span>
+        <span class="label-text">Pass Layers</span>
+      </label>
+    </div>
+  </section>
+
+  <div class="panel">
+    <h4>Layer</h4>
+    <ul id="layerList">
+      <!-- Layer will be added here -->
+      <li class="layer-item" draggable="true">
+        <span class="icon">🌍</span>
+        <span class="name">Layer di esempio</span>
+        <div class="actions">
+          <button class="btn menu">⋮</button>
+          <div class="dropdown hidden">
+            <div class="dropdown-item">Rinomina</div>
+            <div class="dropdown-item">Elimina</div>
+            <div class="dropdown-item">Duplica</div>
+          </div>
+          <span class="eye">👁</span>
         </div>
-    </section>
+    </ul>
+    <hr>
+    <!-- Add layer by url s3 http input -->
+    <div class="add-layer">
+      <label for="layerUrl">Aggiungi layer da URL</label>
+      <div class="field">
+        <input type="url" id="layerUrl" placeholder="https://...">
+        <button onclick="addLayerByUrl()">+</button>
+      </div>
+    </div>
+    <hr>
+    <!-- Dropzone drag -->
+    <div id="dropzone">Trascina qui file</div>
+  </div>
 
-    <!-- OpenLayers JS (bundle UMD per semplicità) -->
-    <script src="https://cdn.jsdelivr.net/npm/ol@latest/dist/ol.js"></script>
-    <script src="
-https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.min.js
-"></script>
 
-    <script>
-        // ——— MAPPA OL MINIMALE ELEGANTE ———
-        const { Map, View } = ol;
-        const { Tile: TileLayer, Vector: VectorLayer, Group: LayerGroup } = ol.layer;
-        const { XYZ, OSM, Vector: VectorSource } = ol.source;
-        const { fromLonLat } = ol.proj;
-        const { Style, Circle: CircleStyle, Fill, Stroke } = ol.style;
 
-        // Basemaps (ognuna come funzione che restituisce un layer)
-        const baseFactories = {
-            open: () => new TileLayer({ source: new OSM(), visible: true }),
-            positron: () => new TileLayer({
-                source: new XYZ({ url: 'https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', attributions: '© OpenStreetMap, © CARTO' })
-            }),
-            esri: () => new TileLayer({
-                source: new XYZ({ url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attributions: '© Esri' })
-            }),
-            mapbox: () => {
-                const token = document.getElementById('mbToken').value.trim();
-                const url = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/512/{z}/{x}/{y}?access_token=${token}`;
-                return new TileLayer({ source: new XYZ({ url, tileSize: 512 }) });
-            }
-        };
+  <script src="static/js/_utils.js"></script>
+  <script src="static/js/_map_utils.js"></script>
+  <script src="static/js/_chat_utils.js"></script>
 
-        let baseLayer = baseFactories.open();
+  <script>
+    // drag & drop riordinamento lista
+    const list = document.getElementById('layerList');
+    let dragged;
+    list.addEventListener('dragstart', e => dragged = e.target);
+    list.addEventListener('dragover', e => {
+      e.preventDefault();
+      const after = [...list.children].find(li =>
+        e.clientY < li.getBoundingClientRect().top + li.offsetHeight / 2
+      );
+      list.insertBefore(dragged, after || null);
+    });
 
-        const demoSrc = new ol.source.Vector({
-            url: 'https://s3.us-east-1.amazonaws.com/saferplaces.co/Directed/process_out/SaferBuildingsService/WD_custom_rim2d_sqamrly__flooded_buildings.geojson',
-            format: new ol.format.GeoJSON({ dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' })
-        });
-        const demoLayer = new ol.layer.WebGLVector({
-            source: demoSrc,
-            style: {
-                'fill-color': [59, 130, 246, 0.3],
-                'stroke-color': [59, 130, 246, 1],
-                'stroke-width': 1
-            },
-        });
+    // dropzone upload
+    const dz = document.getElementById('dropzone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover') });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('dragover');
+      [...e.dataTransfer.files].forEach(f => alert("File: " + f.name));
+    });
 
-        const rasterSRC = new ol.source.GeoTIFF({
-            sources: [
-                {
-                    url: 'https://s3.us-east-1.amazonaws.com/saferplaces.co/SaferPlaces-Agent/dev/various/output_cog_3857.tif',
-                },
-            ],
-        });
+    // toggle occhio
+    document.addEventListener("click", e => {
+      const isMenuBtn = e.target.classList.contains("menu");
 
-        const map = new Map({
-            target: 'map',
-            layers: [baseLayer, demoLayer, new ol.layer.Tile({ rasterSRC })],
-            view: new View({ center: fromLonLat([12.4964, 41.9028]), zoom: 5 }),
-            projection: 'EPSG:3857',
-        });
+      // Chiudi tutti i menu
+      document.querySelectorAll(".dropdown").forEach(dd => dd.classList.add("hidden"));
 
-        // after GeoTIFF metadata has been read, recenter the map to show the image
-        // rasterSRC.getView().then((sourceView) => {
-        //     const view = map.getView();
+      // Se ho cliccato su un pulsante menu, riapro SOLO il suo
+      if (isMenuBtn) {
+        const dd = e.target.parentElement.querySelector(".dropdown");
+        dd.classList.remove("hidden");
+      }
 
-        //     // transform the image center to view coorindates
-        //     const center = transform(
-        //         sourceView.center,
-        //         sourceView.projection,
-        //         view.getProjection(),
-        //     );
+      // Toggle occhio
+      if (e.target.classList.contains("eye")) {
+        e.target.textContent = e.target.textContent === "👁" ? "🚫" : "👁";
+      }
+    });
 
-        //     // update the view to show the image
-        //     view.setCenter(center);
-        // });
-
-        // UI: switch basemap   
-        const styleSel = document.getElementById('styleSel');
-        const mbToken = document.getElementById('mbToken');
-        function setBase(name) {
-            const newBase = baseFactories[name] ? baseFactories[name]() : baseFactories.open();
-            map.removeLayer(baseLayer);
-            baseLayer = newBase;
-            map.getLayers().insertAt(0, baseLayer);
-        }
-        styleSel.addEventListener('change', () => setBase(styleSel.value));
-        mbToken.addEventListener('change', () => { if (styleSel.value === 'mapbox') setBase('mapbox'); });
-
-        // Layer manager auto (minimo): visibilità + opacità dei layer non di base
-        const layersBox = document.getElementById('layersBox');
-        const layersDiv = document.getElementById('layers');
-        function renderLayerList() {
-            // raccogli tutti i layer tranne il base (indice 0)
-            const layers = map.getLayers().getArray().slice(1);
-            layersDiv.innerHTML = '';
-            layersBox.hidden = layers.length === 0;
-            layers.forEach((lyr, i) => {
-                const row = document.createElement('div');
-                row.className = 'layer-item';
-                const chk = document.createElement('input');
-                chk.type = 'checkbox';
-                chk.checked = lyr.getVisible();
-                chk.onchange = () => lyr.setVisible(chk.checked);
-                const label = document.createElement('span');
-                label.textContent = lyr.get('title') || `Layer ${i + 1}`;
-                const rng = document.createElement('input');
-                rng.type = 'range'; rng.min = 0; rng.max = 1; rng.step = 0.05; rng.value = lyr.getOpacity();
-                rng.oninput = () => lyr.setOpacity(parseFloat(rng.value));
-                row.append(chk, label, rng);
-                layersDiv.appendChild(row);
-            });
-        }
-        renderLayerList();
-
-        // ——— Chat UI minimale (come originale, mock) ———
-        const chatMsgs = document.getElementById('chatMsgs');
-        const chatInput = document.getElementById('chatInput');
-        const sendBtn = document.getElementById('sendBtn');
-        function appendMsg(role, text) {
-            const div = document.createElement('div');
-            div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
-            div.textContent = text; chatMsgs.appendChild(div); chatMsgs.scrollTop = chatMsgs.scrollHeight;
-        }
-        async function handleSend() {
-            const t = chatInput.value.trim(); if (!t) return; appendMsg('user', t); chatInput.value = '';
-            fetch('/agent/prompt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: t }) })
-                .then(r => { if (!r.ok) throw new Error('Errore'); return r.json(); })
-                .then(d => { (d.response_data || []).forEach(m => appendMsg('bot', m)); })
-                .catch(() => appendMsg('bot', 'Si è verificato un errore.'));
-        }
-        sendBtn.onclick = handleSend;
-        chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </script>
 </body>
 
 </html>

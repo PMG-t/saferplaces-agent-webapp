@@ -19,7 +19,6 @@ function createEl(tag, attrs = {}, children = []) {
         } else if (key === 'html') {
             el.innerHTML = value;
         } else if (key === 'dataset' && typeof value === 'object') {
-            // supporto per dataset: { userId: "123", role: "admin" }
             for (const [dataKey, dataVal] of Object.entries(value)) {
                 el.dataset[dataKey] = dataVal;
             }
