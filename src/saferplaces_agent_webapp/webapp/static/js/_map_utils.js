@@ -39,8 +39,8 @@ function addLayerToRegistry(layer_data) {
                 createEl("span", { class: "material-symbols-outlined icon", text: layer_type_icon_map[layer_data.type] || "star" }),
                 createEl("span", { class: "name", text: layer_data.name }),
                 createEl("div", { class: "actions" }, [
-                    createEl("button", { class: "btn eye", "aria-label": "Visibilità", text: "👁" }),
-                    createEl("button", { class: "btn menu", "aria-label": "Menu", text: "⋮" }),
+                    createEl("button", { class: "btn eye material-symbols-outlined icon", "aria-label": "Visibilità", text: "👁️" }),
+                    createEl("button", { class: "btn menu material-symbols-outlined icon", "aria-label": "Menu", text: "⋮" }),
                     createEl("div", { class: "dropdown hidden" }, [
                         createEl("div", { class: "dropdown-item", text: "Zoom al layer" }),
                         createEl("div", { class: "dropdown-item", text: "Elimina" })
@@ -53,7 +53,7 @@ function addLayerToRegistry(layer_data) {
 
     addLayerToPanel(layer_data);
 
-    if (! layerRegistry.map(l => l.src).includes(layer_data.src)) {
+    if (! layerRegistry.map(l => l.src).includes(s3uri_to_https(layer_data.src))) {
         fetch(`/project/${serverData.page_data.project.project_id}/layers/new`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

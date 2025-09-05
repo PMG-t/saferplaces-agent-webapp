@@ -12,6 +12,7 @@ app.secret_key = "una_chiave_segreta_lunga_e_random"
 def session_values_init():
     if "session_id" not in session:
         session["session_id"] = str(uuid.uuid4())
+        print(f"New session ID: {session['session_id']}")
     if "user_id" not in session:
         session["user_id"] = "default_user"
 

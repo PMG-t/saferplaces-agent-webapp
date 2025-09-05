@@ -63,22 +63,28 @@
     });
 
     // toggle occhio
-    document.addEventListener("click", e => {
-        const isMenuBtn = e.target.classList.contains("menu");
+    // document.addEventListener("click", e => {
+    //     const isMenuBtn = e.target.classList.contains("menu");
 
-        // Chiudi tutti i menu
-        document.querySelectorAll(".dropdown").forEach(dd => dd.classList.add("hidden"));
+    //     // Chiudi tutti i menu
+    //     document.querySelectorAll(".dropdown").forEach(dd => dd.classList.add("hidden"));
 
-        // Se ho cliccato su un pulsante menu, riapro SOLO il suo
-        if (isMenuBtn) {
-            const dd = e.target.parentElement.querySelector(".dropdown");
-            dd.classList.remove("hidden");
-        }
+    //     // Se ho cliccato su un pulsante menu, riapro SOLO il suo
+    //     if (isMenuBtn) {
+    //         const dd = e.target.parentElement.querySelector(".dropdown");
+    //         dd.classList.remove("hidden");
+    //     }
 
-        // Toggle occhio
-        if (e.target.classList.contains("eye")) {
-            e.target.textContent = e.target.textContent === "👁" ? "🚫" : "👁";
-        }
+    //     // Toggle occhio
+    //     if (e.target.classList.contains("eye")) {
+    //         e.target.textContent = e.target.textContent === "👁" ? "🚫" : "👁";
+    //     }
+    // });
+
+    Array.from(document.getElementsByClassName("btn eye")).forEach(btn => {
+        btn.addEventListener("click", function() {
+            this.textContent = this.textContent === "👁️" ? "🚫" : "👁️";
+        });
     });
 </script>
 
