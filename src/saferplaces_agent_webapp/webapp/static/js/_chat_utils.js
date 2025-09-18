@@ -87,7 +87,7 @@ async function handleSend() {
 
     let layers_state = document.getElementById("chat-option-layers").checked ? { layers: layerRegistry } : {};
     // !!!: ugly asf
-    let avaliable_tools = document.getElementById("chat-option-api").checked ? { avaliable_tools: ['digital_twin_tool', 'safer_rain_tool', 'saferbuildings_tool'] } : [];
+    let avaliable_tools = document.getElementById("chat-option-api").checked ? { avaliable_tools: ['digital_twin_tool', 'safer_rain_tool', 'saferbuildings_tool', 'icon2i_ingestor_tool', 'icon2i_retriever_tool', 'dpc_retriever_tool'] } : [];
     avaliable_tools = document.getElementById("chat-option-geo-ops").checked ? { avaliable_tools: ['geospatial_ops_tool'] } : avaliable_tools;
 
     fetch('/agent/prompt', {
