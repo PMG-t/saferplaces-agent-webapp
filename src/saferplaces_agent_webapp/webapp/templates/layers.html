@@ -81,11 +81,30 @@
     //     }
     // });
 
-    Array.from(document.getElementsByClassName("btn eye")).forEach(btn => {
-        btn.addEventListener("click", function() {
-            this.textContent = this.textContent === "👁️" ? "🚫" : "👁️";
-        });
-    });
+    // Array.from(document.getElementsByClassName("btn eye")).forEach(btn => {
+    //     btn.addEventListener("click", function() {
+    //         this.textContent = this.textContent === "👁️" ? "🚫" : "👁️";
+    //     });
+    // });
+
+    function toggleLayerVisibility(event) {
+        let button = event.target;
+        button.textContent = button.textContent === "👁️" ? "🚫" : "👁️";
+    }
+
+    document.addEventListener("click", e => {
+        if (!e.target.classList.contains("menu")) {
+            // Chiudi tutti i menu se non clicco su un pulsante menu
+            document.querySelectorAll(".dropdown").forEach(dd => dd.classList.add("hidden"));
+        }
+    })
+
+    function toggleLayerMenu(event) {
+        const button = event.target;
+        const dropdown = button.parentElement.querySelector(".dropdown");
+        dropdown.classList.toggle("hidden");
+    }
+
 </script>
 
 </html>
